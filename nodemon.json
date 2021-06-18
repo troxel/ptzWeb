@@ -1,0 +1,10 @@
+{
+  "watch": [
+    "src",
+    ".env"
+  ],
+  "ext": "js,json",
+  "ignore": [ ],
+  "exec": "nodejs ./src/ptzWeb.js",
+  "delay": 2
+}

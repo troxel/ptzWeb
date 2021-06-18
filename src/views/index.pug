@@ -1,0 +1,127 @@
+extends layout.pug
+
+block style
+
+  style(type="text/css").
+    #keypad {
+      position: relative;
+      width:400px;
+      height:400px;
+    }
+    #cursor {
+      position: absolute;
+      top: 187px;
+      left: 187px;
+    }
+    .sel {
+      margin-top:7px;
+      margin-right:10px;
+    }
+    .container {
+      width: 970px !important;
+    }
+    #keybrdSliderPan {
+      margin-top: 21px;
+    }   
+    #keybrdSliderTlt {
+      margin-top: 7px;
+    }
+
+block content
+  div.container
+    div.row.row-cols-2
+      div.col
+ 
+        div.border.border-dark#keypad
+          img#pad(src="/img/pad.png", width='400px', height='400px')
+          img#cursor(src="/img/cursor.png")
+
+        div
+          span#posX
+          span#posY
+
+        div(id="keybrdSliderPan")  
+        div(id="keybrdCaptionPan") Pan Sensitivity
+            span(id="keybrdSliderValuePan")
+
+        div(id="keybrdSliderTlt")  
+        div(id="keybrdCaptionTlt") Tilt Sensitivity
+            span(id="keybrdSliderValueTlt")
+
+        script. 
+           $( function() {
+           $( "#keybrdSliderPan" ).slider({min:1,max:200,value:100});
+           $( "#keybrdSliderTlt" ).slider({min:1,max:200,value:100});
+           } );
+
+      div.col
+       
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Query Commands
+          tr
+            td 
+              input.btn.btn-primary#qryPanCmd(value="Query Pan")
+            td#qryPanDeg
+            td Deg
+          tr
+            td 
+              input.btn.btn-primary#qryTltCmd(value="Query Tilt")
+            td#qryTltDeg
+            td Deg
+      
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Preset Commands
+          tr
+            td.fs-4 Presets
+            td
+              select.sel(id="presetId")
+                - var range = Array.from({length: 32}, (x, i) => i);
+                each val in range
+                  option=val
+            td 
+              select.sel(id="presetAction")
+                each obj in [ {txt:"Go",val:7},{txt:"Set",val:3},{txt:"Clear",val:5} ]
+                  option(value=obj.val)=obj.txt
+            td 
+              input.btn.btn-primary#presetCmd(value="Send")
+
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Homing Commands
+          tr
+            td
+              input.btn.btn-primary#homingPanCmd(value="Pan Homing")
+            td
+              input.btn.btn-primary#homingTltCmd(value="Tilt Homing")
+          tr
+            td#homingTltComplete
+            td#homingPanComplete
+          tr
+            td(colspan="2")
+              input.btn.btn-primary#homingPanTltCmd(value="Combined Homing")
+          tr    
+            td(colspan="2")#homingPanTltComplete
+
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Gyro Stabilization Commands
+          tr
+            td
+              input.btn.btn-success#stablePanCmd(value="Pan Steady")
+            td
+              input.btn.btn-success#stableTltCmd(value="Tilt Steady")
+          tr
+            td#stablePanStatus
+            td#stableTltStatus
+          tr
+            td(colspan="2")
+              input.btn.btn-success#stablePanTltCmd(value="Both Axis Steady")
+          tr    
+            td(colspan="2")#stablePanTltStatus
+          tr
+            td(colspan="2")
+              input.btn.btn-danger#stableStop(value="Stop")
+          tr    
+            td(colspan="2")#stableStopStatus
+
+    div.row
+      div.col
+        //input.btn.btn-primary#tiltStatusCmd(value="Tilt Status")

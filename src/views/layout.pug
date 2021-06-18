@@ -1,0 +1,52 @@
+html
+  head
+    title My Site - #{title}
+    //meta(name="viewport",content="width=device-width, initial-scale=1") 
+    block scripts
+      script(src='/js/jquery.js')
+      script(src='/js/jquery-ui/jquery-ui.js')
+      // script(src='/js/jquery.ui.touch-punch.min.js')
+      script(src='/js/ptz_bundle.js')
+      script(src='/js/plot.js')
+      script(src="/fw/bootstrap/js/bootstrap.bundle.js")
+      script(src="https://cdn.plot.ly/plotly-latest.min.js")
+
+    block css
+      link(href="/js/jquery-ui/jquery-ui.min.css", rel="stylesheet")
+      link(href="/fw/bootstrap/css/bootstrap.min.css", rel="stylesheet")
+
+    block style  
+    
+  body
+ 
+    block header
+      div.container
+        ul.nav.nav-tabs(style="margin-bottom:10px;")
+          li.nav-item
+            a.nav-link(aria-current='page' href='/' class=active_home) Home
+          li.nav-item.dropdown
+            a.nav-link.dropdown-toggle(data-bs-toggle='dropdown' href='#' role='button' aria-expanded='false' class=active_plot) Plot 
+            ul.dropdown-menu
+              li
+                a.dropdown-item(href='/plot') Compare Gyro
+              li
+                a.dropdown-item(href='#') Plot Action 1
+              li
+                a.dropdown-item(href='#') Plot Action 2
+              li
+                hr.dropdown-divider
+              li
+                a.dropdown-item(href='#') Separated link
+          li.nav-item
+            a.nav-link(href='#') Config
+          li.nav-item
+            a.nav-link.disabled(href='#' tabindex='-1' aria-disabled='true') Disabled
+
+    block content
+    block footer
+      div.container
+        #footer
+          p PTZ Control
+
+    block scripts_local
+      

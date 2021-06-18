@@ -1,0 +1,54 @@
+{
+  "name": "ptzWeb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/ptzWeb.js",
+  "scripts": {
+    "start": "nodemon",
+    "bundlePtz": "browserifyinc ./src/static/js/ptz.js -o ./src/static/js/ptz_bundle.js",
+    "bundlePlot": "browserifyinc ./src/static/js/plot.js -o ./src/static/js/plot_bundle.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/troxel/ptzWeb.git"
+  },
+  "keywords": [
+    "Pan Tilt Zoom Desktop App",
+    "PelecoD",
+    "node",
+    "express",
+    "bulletproof"
+  ],
+  "author": "Steve Troxel",
+  "license": "MIT",
+  "dependencies": {
+    "@raygun-nickj/mmap-io": "^1.2.3",
+    "browserify": "^17.0.0",
+    "browserify-incremental": "^3.1.1",
+    "bufferpack": "0.0.6",
+    "dotenv": "^8.2.0",
+    "errorhandler": "^1.5.1",
+    "eventemitter3": "^4.0.7",
+    "express": "^4.17.1",
+    "express-basic-auth": "^1.2.0",
+    "express-jwt": "^6.0.0",
+    "express-ws": "^4.0.0",
+    "ip": "^1.1.5",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.21",
+    "mmap-io": "^1.1.7",
+    "moment": "^2.29.1",
+    "moment-timezone": "^0.5.33",
+    "network": "^0.5.0",
+    "pelcod": "^0.1.0",
+    "pug": "^3.0.2",
+    "sprintf-js": "^1.1.2",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "prettier": "^2.2.1"
+  },
+  "optionalDependencies": {
+    "fsevents": "^2.3.2"
+  }
+}

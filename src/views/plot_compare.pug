@@ -1,0 +1,30 @@
+extends layout.pug
+
+block style
+
+  style(type="text/css").
+  
+    .btn { margin:10px; }
+    
+    #plotDiv {
+      width:95%;
+      height:575px;
+      margin-top: 15px;
+      margin-bottom: 5px;
+    }
+
+block content
+  div.container
+    div.row
+      div.col.border
+         div#plotDiv()
+
+    div.row
+      div.col.btn
+        input.btn.btn-primary#start_plot_compare(value="Start")
+        input.btn.btn-primary#stop_plot_compare(value="Stop")
+        #{title}
+      
+block scripts_local
+  script.
+    plot_compare()
