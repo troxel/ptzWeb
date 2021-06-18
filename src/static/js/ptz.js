@@ -213,7 +213,7 @@ $(document).ready(function() {
         $("#keybrdSliderValuePan").html(" " +  (ui.value/100).toFixed(2))
 
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x09  
+        SndBuf[3] = 0x83  
         SndBuf[4] = ui.value 
         SndBuf[5] = $( "#keybrdSliderTlt" ).slider( "option", "value" )
         rtn = wbsockCmd.send(SndBuf)
@@ -224,7 +224,7 @@ $(document).ready(function() {
         $("#keybrdSliderValueTlt").html(" " + (ui.value/100).toFixed(2))
 
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x09  
+        SndBuf[3] = 0x83  
         SndBuf[4] = $( "#keybrdSliderPan" ).slider( "option", "value" ) 
         SndBuf[5] =  ui.value
         rtn = wbsockCmd.send(SndBuf)
