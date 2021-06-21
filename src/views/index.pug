@@ -10,8 +10,8 @@ block style
     }
     #cursor {
       position: absolute;
-      top: 187px;
-      left: 187px;
+      top: 190px;
+      left: 190px;
     }
     .sel {
       margin-top:7px;
@@ -34,7 +34,7 @@ block content
  
         div.border.border-dark#keypad
           img#pad(src="/img/pad.png", width='400px', height='400px')
-          img#cursor(src="/img/cursor.png")
+          img#cursor(src="/img/cursor.png" width='20px', height='20px')
 
         div
           span#posX
@@ -50,8 +50,8 @@ block content
 
         script. 
            $( function() {
-           $( "#keybrdSliderPan" ).slider({min:1,max:200,value:100});
-           $( "#keybrdSliderTlt" ).slider({min:1,max:200,value:100});
+           $( "#keybrdSliderPan" ).slider({min:1,max:500,value:400});
+           $( "#keybrdSliderTlt" ).slider({min:1,max:500,value:400});
            } );
 
       div.col

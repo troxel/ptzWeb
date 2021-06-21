@@ -503,7 +503,7 @@ wbsockCmd.addEventListener('message', function (event) {
        
         let packetView = new Uint8Array(event.data)
 
-        console.log(event.data)
+        //console.log(event.data)
 
         // There are only a few official PelcoD query responses
         if ( packetView[0] == 0xFF ){
@@ -599,8 +599,12 @@ $(document).ready(function() {
         containment: "parent",
         drag: function(event, ui) {
            
-            xPos = ui.position.left - 187
-            yPos = ui.position.top - 187
+            // cursor is 20x20 
+            xPos = ui.position.left - 190
+            yPos = ui.position.top - 190
+
+            console.log("y",yPos, ui.position.top)
+
             //console.log(ui.position.top,ui.position.left)
             $('#posX').text('x: ' + xPos);
             $('#posY').text('y: ' + yPos);
@@ -615,13 +619,13 @@ $(document).ready(function() {
 
             yPos = Math.abs(yPos)
             xPos = Math.abs(xPos)
-            if ( yPos > 255 ){ yPos = 255 } 
-            if ( xPos > 255 ){ xPos = 255 } 
+            if ( yPos > 0x3F ){ yPos = 0x3F } 
+            if ( xPos > 0xFF ){ xPos = 0xFF } 
 
-            xPos = Math.ceil(.003 * Math.pow(xPos,2))
-            yPos = Math.ceil(.003 * Math.pow(yPos,2))
+            //xPos = Math.ceil(.003 * Math.pow(xPos,2))
+            //yPos = Math.ceil(.003 * Math.pow(yPos,2))
 
-            console.log("xy = ", xPos,yPos)
+            //console.log("xy = ", xPos,yPos)
 
             var cmd = pelcod.up(upFlg)
                 .left(leftFlg)
@@ -702,7 +706,7 @@ $(document).ready(function() {
     // -------------- Sensitivity Slider ---------------
     $("#keybrdSliderPan").on("slidechange", function(event,ui){
         console.log("slider ", ui.value)
-        $("#keybrdSliderValuePan").html(" " +  (ui.value/100).toFixed(2))
+        $("#keybrdSliderValuePan").html(" " +  (ui.value/400).toFixed(3))
 
         SndBuf[2] = 0x00
         SndBuf[3] = 0x83  
@@ -713,7 +717,7 @@ $(document).ready(function() {
 
     $("#keybrdSliderTlt").on("slidechange", function(event,ui){
         console.log("slider ", ui.value)
-        $("#keybrdSliderValueTlt").html(" " + (ui.value/100).toFixed(2))
+        $("#keybrdSliderValueTlt").html(" " + (ui.value/400).toFixed(3))
 
         SndBuf[2] = 0x00
         SndBuf[3] = 0x83  
