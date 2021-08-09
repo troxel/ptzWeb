@@ -1,0 +1,806 @@
+[1mdiff --git a/package-lock.json b/package-lock.json[m
+[1mindex 5d4409e..4c7c5d0 100644[m
+[1m--- a/package-lock.json[m
+[1m+++ b/package-lock.json[m
+[36m@@ -3286,9 +3286,9 @@[m
+       "integrity": "sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8="[m
+     },[m
+     "ws": {[m
+[31m-      "version": "5.2.2",[m
+[31m-      "resolved": "https://registry.npmjs.org/ws/-/ws-5.2.2.tgz",[m
+[31m-      "integrity": "sha512-jaHFD6PFv6UgoIVda6qZllptQsMlDEJkTQcybzzXDYM1XO9Y8em691FGMPmM46WGyLU4z9KMgQN+qrux/nhlHA==",[m
+[32m+[m[32m      "version": "5.2.3",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/ws/-/ws-5.2.3.tgz",[m
+[32m+[m[32m      "integrity": "sha512-jZArVERrMsKUatIdnLzqvcfydI85dvd/Fp1u/VOpfdDWQ4c9qWXe+VIeAbQ5FrDwciAkr+lzofXLz3Kuf26AOA==",[m
+       "requires": {[m
+         "async-limiter": "~1.0.0"[m
+       }[m
+[1mdiff --git a/src/static/js/ptz_bundle.js b/src/static/js/ptz_bundle.js[m
+[1mindex de6d378..384d047 100644[m
+[1m--- a/src/static/js/ptz_bundle.js[m
+[1m+++ b/src/static/js/ptz_bundle.js[m
+[36m@@ -451,7 +451,7 @@[m [mPelcoD.prototype.setFocusNear = function(status) {[m
+     if(status === true) [m
+         this.bytes.getCom1().on(0x00)[m
+     else[m
+[31m-        this.bytes.getCom1().off(0x00)    [m
+[32m+[m[32m        this.bytes.getCom1().off(0x00)[m
+     return this[m
+ }[m
+ [m
+[36m@@ -490,291 +490,374 @@[m [mmodule.exports = PelcoD;[m
+ [m
+ [m
+ },{"./libs/bytes":2}],4:[function(require,module,exports){[m
+[31m-const ipAddr = location.hostname[m
+[31m-[m
+[31m-const wsUrlCmd = `ws://${ipAddr}:3000/cmd`[m
+[31m-const wbsockCmd = new WebSocket(wsUrlCmd)[m
+[31m-wbsockCmd.binaryType = 'arraybuffer'[m
+[31m-[m
+[31m-wbsockCmd.addEventListener('message', function (event) {[m
+[31m-    //console.log('Message from server ', event)[m
+[31m-[m
+[31m-    if ( event.data instanceof ArrayBuffer ){[m
+[31m-       [m
+[31m-        let packetView = new Uint8Array(event.data)[m
+[31m-[m
+[31m-        //console.log(event.data)[m
+[31m-[m
+[31m-        // There are only a few official PelcoD query responses[m
+[31m-        if ( packetView[0] == 0xFF ){[m
+[31m-[m
+[31m-            if ( packetView[3] == 0x59){[m
+[31m-                let pos = (((packetView[4] & 0xff) << 8) | (packetView[5] & 0xff))[m
+[31m-                pos = (new Int16Array([pos]))[0] [m
+[31m-                pos /= 10 // position is multipled by 10 in motionSrv [m
+[31m-                console.log("pos=",pos)[m
+[31m-                $('#qryPanDeg').html(pos.toString() );[m
+[31m-            }[m
+[31m-            else if ( packetView[3] == 0x5B){[m
+[31m-                let pos = (((packetView[4] & 0xff) << 8) | (packetView[5] & 0xff))[m
+[31m-                pos = (new Int16Array([pos]))[0] [m
+[31m-                pos /= 100 // position is multipled by 10 in motionSrv [m
+[31m-                console.log("pos=",pos)[m
+[31m-                $('#qryTltDeg').html(pos.toString() );[m
+[31m-            }[m
+[31m-            else if ( packetView[3] == 0x61){[m
+[31m-                if ( packetView[5] == 1 )[m
+[31m-                console.log("Homing Pan Complete")[m
+[31m-                $('#homingPanComplete').html( "Homing Pan Complete" );[m
+[31m-            }[m
+[31m-            else if ( packetView[3] == 0x63){[m
+[31m-                if ( packetView[5] == 1 )[m
+[31m-                console.log("Homing Tilt Complete")[m
+[31m-                $('#homingTltComplete').html( "Homing Tilt Complete" );[m
+[31m-            }[m
+[31m-        }[m
+[31m-          [m
+[31m-[m
+[31m-    } else {[m
+[31m-        console.error("Error: ArrayBuffer is expected")[m
+[31m-    }    [m
+[31m-   [m
+[31m-  });[m
+[31m-[m
+[31m-const wsUrlData = `ws://${ipAddr}:3000/data`[m
+[31m-const wbsockData = new WebSocket(wsUrlData)[m
+[31m-wbsockData.binaryType = 'arraybuffer'[m
+[31m-[m
+[31m-wbsockData.addEventListener('message', function (event) {[m
+[31m-    [m
+[31m-    if ( event.data instanceof ArrayBuffer ){[m
+[31m-       [m
+[31m-        var GyroView = new Float64Array(event.data)[m
+[31m-        //console.log(GyroView)[m
+[31m-[m
+[31m-        // The 5th (zero based) element is omega z[m
+[31m-        // There are 17 - 8 elements per buffer so 22[m
+[31m-[m
+[31m-        console.log(GyroView[5],GyroView[22],GyroView.length)[m
+[31m-[m
+[31m-        Plotly.extendTraces('plotDiv', {[m
+[31m-            y: [[ GyroView[5] ],[ GyroView[22] ]][m
+[31m-          }, [0,1], 401)[m
+[31m-[m
+[31m- [m
+[31m-    } else {[m
+[31m-        console.log("Error: ArrayBuffer is expected " , event.data)[m
+[31m-    }    [m
+[31m-   [m
+[31m-  });[m
+[31m-[m
+[31m-// -------------------------------------------[m
+[31m-// Relying upon browserify to pull in this code[m
+[31m-var PelcoD = require('pelcod')[m
+[31m-var pelcod = new PelcoD()[m
+[31m-[m
+[31m-var ptAddr = 0x01[m
+[31m-SndBuf = new Uint8Array(7)[m
+[31m-SndBuf[0] = 0xFF[m
+[31m-SndBuf[1] = ptAddr[m
+[31m-[m
+[31m-// ------------------------------------------[m
+[31m-$(document).ready(function() {[m
+[31m-    /*[m
+[31m-    $('cursor').mousedown(function(e) {[m
+[31m-      var offset = $(this).offset();[m
+[31m-      let x = e.pageX - offset.left;[m
+[31m-      let y = e.pageY - offset.top;[m
+[31m-      console.log(x,y)[m
+[31m-    })[m
+[31m-    */[m
+[31m-   //buff = new Uint8Array(2);[m
+[31m-   // ------- Keyboard draggable widget -------------------- [m
+[31m-   buff = new Uint8Array(7)[m
+[31m-   $("#cursor").draggable({[m
+[31m-        revert:true,[m
+[31m-        revertDuration: 200,[m
+[31m-        grid:[2,2],[m
+[31m-        scroll: false,[m
+[31m-        containment: "parent",[m
+[31m-        drag: function(event, ui) {[m
+[31m-           [m
+[31m-            // cursor is 20x20 [m
+[31m-            xPos = ui.position.left - 190[m
+[31m-            yPos = ui.position.top - 190[m
+[31m-[m
+[31m-            console.log("y",yPos, ui.position.top)[m
+[31m-[m
+[31m-            //console.log(ui.position.top,ui.position.left)[m
+[31m-            $('#posX').text('x: ' + xPos);[m
+[31m-            $('#posY').text('y: ' + yPos);[m
+[31m-            buff[0] = xPos[m
+[31m-            buff[1] = yPos[m
+[31m-            //console.log(buff.buffer.toString())[m
+[31m-            //rtn = wbsockCmd.send(buff.buffer)[m
+[31m-            //console.log("rtn = ",rtn) [m
+[31m-[m
+[31m-            var upFlg   = yPos > 0[m
+[31m-            var leftFlg = xPos > 0[m
+[31m-[m
+[31m-            yPos = Math.abs(yPos)[m
+[31m-            xPos = Math.abs(xPos)[m
+[31m-            if ( yPos > 0x3F ){ yPos = 0x3F } [m
+[31m-            if ( xPos > 0xFF ){ xPos = 0xFF } [m
+[31m-[m
+[31m-            //xPos = Math.ceil(.003 * Math.pow(xPos,2))[m
+[31m-            //yPos = Math.ceil(.003 * Math.pow(yPos,2))[m
+[31m-[m
+[31m-            //console.log("xy = ", xPos,yPos)[m
+[31m-[m
+[31m-            var cmd = pelcod.up(upFlg)[m
+[31m-                .left(leftFlg)[m
+[31m-                .down(!upFlg)[m
+[31m-                .right(!leftFlg)[m
+[31m-                .setPanSpeed(xPos)[m
+[31m-                .setTiltSpeed(yPos)[m
+[31m-               [m
+[31m-            console.log(cmd.bytes.getBuffer())[m
+[31m-           [m
+[31m-            rtn = wbsockCmd.send(cmd.bytes.getBuffer())[m
+[31m-            [m
+[31m-        }, [m
+[31m-        stop: function(event,ui){[m
+[31m-            var rtn = pelcod.up(true).left(true).setPanSpeed(0).setTiltSpeed(0)[m
+[31m-            wbsockCmd.send(rtn.bytes.getBuffer()) [m
+[31m-            wbsockCmd.send(rtn.bytes.getBuffer()) [m
+[31m-        }[m
+[31m-    })[m
+[31m-    [m
+[31m-    $("#qryPanCmd").click( function(){[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = 0x51[m
+[31m-        rtn = wbsockCmd.send(SndBuf)        [m
+[31m-    })    [m
+[31m-    [m
+[31m-    $("#qryTltCmd").click( function(){[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = 0x53[m
+[31m-        rtn = wbsockCmd.send(SndBuf)        [m
+[31m-    })[m
+[31m-    [m
+[31m-    // ----------- Homing -------------------[m
+[31m-    $("#homingPanCmd").click( function(){[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = 0x61[m
+[31m-        rtn = wbsockCmd.send(SndBuf)[m
+[31m-        $('#homingPanComplete').html( "Homing Processing..." );[m
+[31m-    })[m
+[31m-[m
+[31m-    $("#homingTltCmd").click( function(){[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = 0x63[m
+[31m-        rtn = wbsockCmd.send(SndBuf)[m
+[31m-        $('#homingTltComplete').html( "Tilt Processing..." );[m
+[31m-    }) [m
+[31m-    [m
+[31m-    $("#homingPanTltCmd").click( function(){[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = 0x65[m
+[31m-        rtn = wbsockCmd.send(SndBuf)[m
+[31m-        $('#homingPanTltComplete').html( "Pan/Tilt Processing..." );[m
+[31m-    })[m
+[31m-[m
+[31m-    // ----------- Stable -------------------[m
+[31m-    $("#stablePanCmd").click( function(){[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = 0x77[m
+[31m-        SndBuf[5] = 0x1[m
+[31m-        rtn = wbsockCmd.send(SndBuf)[m
+[31m-        $('#stablePanStatus').html( "Pan Stable Processing" );[m
+[31m-    })[m
+[31m-[m
+[31m-    $("#stableTltCmd").click( function(){[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = 0x73[m
+[31m-        rtn = wbsockCmd.send(SndBuf)[m
+[31m-        $('#stableTltStatus').html( "Tilt Stable Processing" );[m
+[31m-    }) [m
+[31m-    [m
+[31m-    $("#stablePanTltCmd").click( function(){[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = 0x75[m
+[31m-        rtn = wbsockCmd.send(SndBuf)[m
+[31m-        $('#stablePanTltStatus').html( "Pan/Tilt Stable Processing" );[m
+[31m-    })[m
+[31m-[m
+[31m-    // -------------- Sensitivity Slider ---------------[m
+[31m-    $("#keybrdSliderPan").on("slidechange", function(event,ui){[m
+[31m-        console.log("slider ", ui.value)[m
+[31m-        $("#keybrdSliderValuePan").html(" " +  (ui.value/400).toFixed(3))[m
+[31m-[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = 0x83  [m
+[31m-        SndBuf[4] = ui.value [m
+[31m-        SndBuf[5] = $( "#keybrdSliderTlt" ).slider( "option", "value" )[m
+[31m-        rtn = wbsockCmd.send(SndBuf)[m
+[31m-    })  [m
+[31m-[m
+[31m-    $("#keybrdSliderTlt").on("slidechange", function(event,ui){[m
+[31m-        console.log("slider ", ui.value)[m
+[31m-        $("#keybrdSliderValueTlt").html(" " + (ui.value/400).toFixed(3))[m
+[31m-[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = 0x83  [m
+[31m-        SndBuf[4] = $( "#keybrdSliderPan" ).slider( "option", "value" ) [m
+[31m-        SndBuf[5] =  ui.value[m
+[31m-        rtn = wbsockCmd.send(SndBuf)[m
+[31m-    })[m
+[31m-[m
+[31m-[m
+[31m-    // -------------- Presets ---------------------------[m
+[31m-    $("#presetCmd").click( function(){[m
+[31m-[m
+[31m-        let presetId = $( "#presetId" ).val();[m
+[31m-        let presetAction = $( "#presetAction" ).val();[m
+[31m-[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = presetAction[m
+[31m-        SndBuf[5] = presetId[m
+[31m-        console.log(SndBuf)[m
+[31m-        rtn = wbsockCmd.send(SndBuf)[m
+[31m-    })[m
+[31m-[m
+[31m-    // ---- Plot Control -----[m
+[31m-    $("#start_plot_compare").click( function(){[m
+[31m-        rtn = wbsockData.send("start_plot_compare")[m
+[31m-    })[m
+[31m-[m
+[31m-    $("#stop_plot_compare").click( function(){[m
+[31m-        rtn = wbsockData.send("stop_plot_compare")[m
+[31m-    })[m
+[31m-[m
+[31m-    $("#tiltStatusCmd").click( function(){[m
+[31m-        SndBuf[2] = 0x00[m
+[31m-        SndBuf[3] = 0x69[m
+[31m-        SndBuf[4] = 0x00[m
+[31m-        rtn = wbsockCmd.send(SndBuf)[m
+[31m-    })[m
+[31m-[m
+[31m-    /*[m
+[31m-    var isDragging = false;[m
+[31m-    $("#pad")[m
+[31m-    .mousedown(function() {[m
+[31m-        isDragging = false;[m
+[31m-    })[m
+[31m-    .mousemove(function(e) {[m
+[31m-        isDragging = true;[m
+[31m-        console.log(e.pageX)[m
+[31m-     })[m
+[31m-    .mouseup(function() {[m
+[31m-        var wasDragging = isDragging;[m
+[31m-        isDragging = false;[m
+[31m-        if (!wasDragging) {[m
+[31m-            //$("#pad").toggle();[m
+[31m-        }[m
+[31m-    });[m
+[31m-    */[m
+[31m-[m
+[32m+[m[32mconst ipAddr = location.hostname[m
+[32m+[m
+[32m+[m[32mconst wsUrlCmd = `ws://${ipAddr}:3000/cmd`[m
+[32m+[m[32mconst wbsockCmd = new WebSocket(wsUrlCmd)[m
+[32m+[m[32mwbsockCmd.binaryType = 'arraybuffer'[m
+[32m+[m
+[32m+[m[32mwbsockCmd.addEventListener('message', function (event) {[m
+[32m+[m[32m    //console.log('Message from server ', event)[m
+[32m+[m
+[32m+[m[32m    if ( event.data instanceof ArrayBuffer ){[m
+[32m+[m[41m       [m
+[32m+[m[32m        let packetView = new Uint8Array(event.data)[m
+[32m+[m
+[32m+[m[32m        //console.log(event.data)[m
+[32m+[m
+[32m+[m[32m        // There are only a few official PelcoD query responses[m
+[32m+[m[32m        if ( packetView[0] == 0xFF ){[m
+[32m+[m
+[32m+[m[32m            if ( packetView[3] == 0x59){[m
+[32m+[m[32m                let pos = (((packetView[4] & 0xff) << 8) | (packetView[5] & 0xff))[m
+[32m+[m[32m                pos = (new Int16Array([pos]))[0][m[41m [m
+[32m+[m[32m                pos /= 10 // position is multipled by 10 in motionSrv[m[41m [m
+[32m+[m[32m                console.log("pos=",pos)[m
+[32m+[m[32m                $('#qryPanDeg').html(pos.toString() );[m
+[32m+[m[32m            }[m
+[32m+[m[41m			[m
+[32m+[m[32m            else if ( packetView[3] == 0x5B){[m
+[32m+[m[32m                let pos = (((packetView[4] & 0xff) << 8) | (packetView[5] & 0xff))[m
+[32m+[m[32m                pos = (new Int16Array([pos]))[0][m[41m [m
+[32m+[m[32m                pos /= 100 // position is multipled by 10 in motionSrv[m[41m [m
+[32m+[m[32m                console.log("pos=",pos)[m
+[32m+[m[32m                $('#qryTltDeg').html(pos.toString() );[m
+[32m+[m[32m            }[m
+[32m+[m[41m			[m
+[32m+[m[32m            else if ( packetView[3] == 0x65){[m
+[32m+[m[32m                if ( packetView[5] == 1 )[m
+[32m+[m[32m                console.log("Homing Pan Complete")[m
+[32m+[m[32m                $('#homingPanComplete').html( "Homing Pan Complete" );[m
+[32m+[m[32m                // ----------- Clear status------------[m
+[32m+[m[32m                setTimeout(function() {($('#homingPanComplete').html( "" ))}, 2000);[m
+[32m+[m[32m            }[m
+[32m+[m[41m			[m
+[32m+[m[32m            else if ( packetView[3] == 0x67){[m
+[32m+[m[32m                if ( packetView[5] == 1 )[m
+[32m+[m[32m                console.log("Homing Tilt Complete")[m
+[32m+[m[32m                $('#homingTltComplete').html( "Homing Tilt Complete" );[m
+[32m+[m[32m                // ----------- Clear status------------[m
+[32m+[m[32m                setTimeout(function() {($('#homingTltComplete').html( "" ))}, 2000);[m
+[32m+[m[32m            }[m
+[32m+[m[41m			[m
+[32m+[m[32m            else if( packetView[3] == 0x69){[m
+[32m+[m[32m                if ( packetView[5] == 1 )[m
+[32m+[m[32m                console.log("Homing Pan/Tilt Complete")[m
+[32m+[m[32m                $('#homingPanTltComplete').html( "Homing Pan/Tilt Complete" );[m
+[32m+[m[32m                // ----------- Clear status------------[m
+[32m+[m[32m                setTimeout(function() {($('#homingPanTltComplete').html( "" ))}, 2000);[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m[41m          [m
+[32m+[m
+[32m+[m[32m    } else {[m
+[32m+[m[32m        console.error("Error: ArrayBuffer is expected")[m
+[32m+[m[32m    }[m[41m    [m
+[32m+[m[41m   [m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32mconst wsUrlData = `ws://${ipAddr}:3000/data`[m
+[32m+[m[32mconst wbsockData = new WebSocket(wsUrlData)[m
+[32m+[m[32mwbsockData.binaryType = 'arraybuffer'[m
+[32m+[m
+[32m+[m[32mwbsockData.addEventListener('message', function (event) {[m
+[32m+[m[41m    [m
+[32m+[m[32m    if ( event.data instanceof ArrayBuffer ){[m
+[32m+[m[41m       [m
+[32m+[m[32m        var GyroView = new Float64Array(event.data)[m
+[32m+[m[32m        //console.log(GyroView)[m
+[32m+[m
+[32m+[m[32m        // The 5th (zero based) element is omega z[m
+[32m+[m[32m        // There are 17 - 8 elements per buffer so 22[m
+[32m+[m
+[32m+[m[32m        console.log(GyroView[5],GyroView[22],GyroView.length)[m
+[32m+[m
+[32m+[m[32m        Plotly.extendTraces('plotDiv', {[m
+[32m+[m[32m            y: [[ GyroView[5] ],[ GyroView[22] ]][m
+[32m+[m[32m          }, [0,1], 401)[m
+[32m+[m
+[32m+[m[41m [m
+[32m+[m[32m    } else {[m
+[32m+[m[32m        console.log("Error: ArrayBuffer is expected " , event.data)[m
+[32m+[m[32m    }[m[41m    [m
+[32m+[m[41m   [m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m// -------------------------------------------[m
+[32m+[m[32m// Relying upon browserify to pull in this code[m
+[32m+[m[32mvar PelcoD = require('pelcod')[m
+[32m+[m[32mvar pelcod = new PelcoD()[m
+[32m+[m
+[32m+[m[32mvar ptAddr = 0x01[m
+[32m+[m[32mSndBuf = new Uint8Array(7)[m
+[32m+[m[32mSndBuf[0] = 0xFF[m
+[32m+[m[32mSndBuf[1] = ptAddr[m
+[32m+[m
+[32m+[m[32m// ------------------------------------------[m
+[32m+[m[32m$(document).ready(function() {[m
+[32m+[m[32m    /*[m
+[32m+[m[32m    $('cursor').mousedown(function(e) {[m
+[32m+[m[32m      var offset = $(this).offset();[m
+[32m+[m[32m      let x = e.pageX - offset.left;[m
+[32m+[m[32m      let y = e.pageY - offset.top;[m
+[32m+[m[32m      console.log(x,y)[m
+[32m+[m[32m    })[m
+[32m+[m[32m    */[m
+[32m+[m[32m   //buff = new Uint8Array(2);[m
+[32m+[m[32m   // ------- Keyboard draggable widget --------------------[m[41m [m
+[32m+[m[32m   buff = new Uint8Array(7)[m
+[32m+[m[32m   $("#cursor").draggable({[m
+[32m+[m[32m        revert:true,[m
+[32m+[m[32m        revertDuration: 200,[m
+[32m+[m[32m        grid:[2,2],[m
+[32m+[m[32m        scroll: false,[m
+[32m+[m[32m        containment: "parent",[m
+[32m+[m[32m        drag: function(event, ui) {[m
+[32m+[m[41m           [m
+[32m+[m[32m            // cursor is 20x20[m[41m [m
+[32m+[m[32m            xPos = ui.position.left - 190[m
+[32m+[m[32m            yPos = ui.position.top - 190[m
+[32m+[m
+[32m+[m[32m            console.log("y",yPos, ui.position.top)[m
+[32m+[m
+[32m+[m[32m            //console.log(ui.position.top,ui.position.left)[m
+[32m+[m[32m            $('#posX').text('x: ' + xPos);[m
+[32m+[m[32m            $('#posY').text('y: ' + yPos);[m
+[32m+[m[32m            buff[0] = xPos[m
+[32m+[m[32m            buff[1] = yPos[m
+[32m+[m[32m            //console.log(buff.buffer.toString())[m
+[32m+[m[32m            //rtn = wbsockCmd.send(buff.buffer)[m
+[32m+[m[32m            //console.log("rtn = ",rtn)[m[41m [m
+[32m+[m
+[32m+[m[32m            var upFlg   = yPos > 0[m
+[32m+[m[32m            var leftFlg = xPos > 0[m
+[32m+[m
+[32m+[m[32m            yPos = Math.abs(yPos)[m
+[32m+[m[32m            xPos = Math.abs(xPos)[m
+[32m+[m[32m            if ( yPos > 0x3F ){ yPos = 0x3F }[m[41m [m
+[32m+[m[32m            if ( xPos > 0xFF ){ xPos = 0xFF }[m[41m [m
+[32m+[m
+[32m+[m[32m            //xPos = Math.ceil(.003 * Math.pow(xPos,2))[m
+[32m+[m[32m            //yPos = Math.ceil(.003 * Math.pow(yPos,2))[m
+[32m+[m
+[32m+[m[32m            //console.log("xy = ", xPos,yPos)[m
+[32m+[m
+[32m+[m[32m            var cmd = pelcod.up(upFlg)[m
+[32m+[m[32m                .left(leftFlg)[m
+[32m+[m[32m                .down(!upFlg)[m
+[32m+[m[32m                .right(!leftFlg)[m
+[32m+[m[32m                .setPanSpeed(xPos)[m
+[32m+[m[32m                .setTiltSpeed(yPos)[m
+[32m+[m[41m               [m
+[32m+[m[32m            console.log(cmd.bytes.getBuffer())[m
+[32m+[m[41m           [m
+[32m+[m[32m            rtn = wbsockCmd.send(cmd.bytes.getBuffer())[m
+[32m+[m[41m            [m
+[32m+[m[32m        },[m[41m [m
+[32m+[m[32m        stop: function(event,ui){[m
+[32m+[m[32m            var rtn = pelcod.up(true).left(true).setPanSpeed(0).setTiltSpeed(0)[m
+[32m+[m[32m            wbsockCmd.send(rtn.bytes.getBuffer())[m[41m [m
+[32m+[m[32m            wbsockCmd.send(rtn.bytes.getBuffer())[m[41m [m
+[32m+[m[32m        }[m
+[32m+[m[32m    })[m
+[32m+[m[32m    // ----------- Stop -------------------[m
+[32m+[m[32m    $("#StopMvtCmd").click( function(){[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x0c[m
+[32m+[m[32m        SndBuf[4] = 0x00[m
+[32m+[m[32m        SndBuf[5] = 0x00[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m        $('#StopMvtStatus').html( "Stopping..." );[m
+[32m+[m[32m    // ----------- Clear status------------[m
+[32m+[m[32m         setTimeout(function() {($('#StopMvtStatus').html( "" ))}, 2000);[m
+[32m+[m[32m    })[m
+[32m+[m[41m    [m
+[32m+[m[32m    // ----------- Query -------------------[m
+[32m+[m[32m    $("#qryPanCmd").click( function(){[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x51[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m[41m        [m
+[32m+[m[32m    })[m[41m    [m
+[32m+[m[41m    [m
+[32m+[m[32m    $("#qryTltCmd").click( function(){[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x53[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m[41m        [m
+[32m+[m[32m    })[m
+[32m+[m[41m    [m
+[32m+[m[32m    // ----------- Set position -------------------[m
+[32m+[m[32m        $("#setPanCmd").click( function(){[m
+[32m+[m[32m        //first check if it is a proper input[m
+[32m+[m[32m        if(parseInt($("#setPandata").val()) >= 0 && parseInt($("#setPandata").val()) < 360){[m
+[32m+[m[32m        let panData = $( "#setPandata" ).val();[m
+[32m+[m[32m        let panData1 = (panData * 100)[m
+[32m+[m[32m        let panDataHigh = (panData1 >>> 8)[m
+[32m+[m[32m        let panDataLow = (panData1 & 255)[m
+[32m+[m[32m        //let panDataHex = panData1.toString(16)//-Debugging[m
+[32m+[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x4B[m
+[32m+[m[32m        SndBuf[4] = panDataHigh[m
+[32m+[m[32m        SndBuf[5] = panDataLow[m
+[32m+[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m        $('#setPanStatus').html( "Setting pan to " + panData);[m
+[32m+[m[32m        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging[m
+[32m+[m[32m        //----------- Clear status------------[m
+[32m+[m[32m        setTimeout(function() {($('#setPanStatus').html( "" ))}, 2000);[m
+[32m+[m[32m        }[m
+[32m+[m[32m        else{ //Bad Input[m
+[32m+[m[32m        $('#setPanStatus').html( "Input cannot be less than 0 or greater than 359.99");[m
+[32m+[m[32m        //----------- Clear status------------[m
+[32m+[m[32m        setTimeout(function() {($('#setPanStatus').html( "" ))}, 2000);[m
+[32m+[m[32m        }[m
+[32m+[m[32m    })[m
+[32m+[m[41m    [m
+[32m+[m[32m    $("#setTltCmd").click( function(){[m
+[32m+[m[32m        //first check if it is a proper input[m
+[32m+[m[32m        if(parseInt($("#setTltdata").val()) >= -90 && parseInt($("#setTltdata").val()) <= 90 ){[m
+[32m+[m[32m        let tltData = $( "#setTltdata" ).val();[m
+[32m+[m[32m        let tltData1 = ((parseInt(tltData) + parseInt(90)) * 100)[m
+[32m+[m[32m        //let tltData1 = ((tltData) * 100)[m
+[32m+[m[32m        let tltDataHigh = (tltData1 >>> 8)[m
+[32m+[m[32m        let tltDataLow = (tltData1 & 255)[m
+[32m+[m[32m        //let tltDataHex = tltData1.toString(16)//-Debugging[m
+[32m+[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x4D[m
+[32m+[m[32m        SndBuf[4] = tltDataHigh[m
+[32m+[m[32m        SndBuf[5] = tltDataLow[m
+[32m+[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m        $('#setTltStatus').html( "Setting Tilt to " + tltData);[m
+[32m+[m[32m        //$('#setTltStatus').html( "tltData1 is " + tltDataHex); //-Debugging[m
+[32m+[m[32m    // ----------- Clear status------------[m
+[32m+[m[32m        setTimeout(function() {($('#setTltStatus').html( "" ))}, 2000);[m
+[32m+[m[32m        }[m
+[32m+[m[32m        else{ //Bad Input[m
+[32m+[m[32m        $('#setTltStatus').html( "Input cannot be less than -90 or greater than 90");[m
+[32m+[m[32m    // ----------- Clear status------------[m
+[32m+[m[32m        setTimeout(function() {($('#setTltStatus').html( "" ))}, 2000);[m
+[32m+[m[32m        }[m
+[32m+[m[32m    })[m
+[32m+[m[41m    [m
+[32m+[m[32m    // ----------- Homing -------------------[m
+[32m+[m[32m    $("#homingPanCmd").click( function(){[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x65[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m        $('#homingPanComplete').html( "Pan Home Processing..." );[m
+[32m+[m[32m    })[m
+[32m+[m
+[32m+[m[32m    $("#homingTltCmd").click( function(){[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x67[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m        $('#homingTltComplete').html( "Tilt Home Processing..." );[m
+[32m+[m[32m    })[m[41m [m
+[32m+[m[41m    [m
+[32m+[m[32m    $("#homingPanTltCmd").click( function(){[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x69[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m        $('#homingPanTltComplete').html( "Pan/Tilt Home Processing..." );[m
+[32m+[m[32m    })[m
+[32m+[m
+[32m+[m[32m    // ----------- Stable -------------------[m
+[32m+[m[32m    $("#stablePanCmd").click( function(){[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x77[m
+[32m+[m[32m        SndBuf[5] = 0x1[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m        $('#stablePanStatus').html( "Pan Stable Processing" );[m
+[32m+[m[32m    })[m
+[32m+[m
+[32m+[m[32m    $("#stableTltCmd").click( function(){[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x73[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m        $('#stableTltStatus').html( "Tilt Stable Processing" );[m
+[32m+[m[32m    })[m[41m [m
+[32m+[m[41m    [m
+[32m+[m[32m    $("#stablePanTltCmd").click( function(){[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x75[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m        $('#stablePanTltStatus').html( "Pan/Tilt Stable Processing" );[m
+[32m+[m[32m    })[m
+[32m+[m
+[32m+[m[32m    // -------------- Sensitivity Slider ---------------[m
+[32m+[m[32m    $("#keybrdSliderPan").on("slidechange", function(event,ui){[m
+[32m+[m[32m        console.log("slider ", ui.value)[m
+[32m+[m[32m        $("#keybrdSliderValuePan").html(" " +  (ui.value/400).toFixed(3))[m
+[32m+[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x83[m[41m  [m
+[32m+[m[32m        SndBuf[4] = ui.value[m[41m [m
+[32m+[m[32m        SndBuf[5] = $( "#keybrdSliderTlt" ).slider( "option", "value" )[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m    })[m[41m  [m
+[32m+[m
+[32m+[m[32m    $("#keybrdSliderTlt").on("slidechange", function(event,ui){[m
+[32m+[m[32m        console.log("slider ", ui.value)[m
+[32m+[m[32m        $("#keybrdSliderValueTlt").html(" " + (ui.value/400).toFixed(3))[m
+[32m+[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x83[m[41m  [m
+[32m+[m[32m        SndBuf[4] = $( "#keybrdSliderPan" ).slider( "option", "value" )[m[41m [m
+[32m+[m[32m        SndBuf[5] =  ui.value[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m    })[m
+[32m+[m
+[32m+[m
+[32m+[m[32m    // -------------- Presets ---------------------------[m
+[32m+[m[32m    $("#presetCmd").click( function(){[m
+[32m+[m
+[32m+[m[32m        let presetId = $( "#presetId" ).val();[m
+[32m+[m[32m        let presetAction = $( "#presetAction" ).val();[m
+[32m+[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = presetAction[m
+[32m+[m[32m        SndBuf[5] = presetId[m
+[32m+[m[32m        console.log(SndBuf)[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m    })[m
+[32m+[m
+[32m+[m[32m    // ---- Plot Control -----[m
+[32m+[m[32m    $("#start_plot_compare").click( function(){[m
+[32m+[m[32m        rtn = wbsockData.send("start_plot_compare")[m
+[32m+[m[32m    })[m
+[32m+[m
+[32m+[m[32m    $("#stop_plot_compare").click( function(){[m
+[32m+[m[32m        rtn = wbsockData.send("stop_plot_compare")[m
+[32m+[m[32m    })[m
+[32m+[m
+[32m+[m[32m    $("#tiltStatusCmd").click( function(){[m
+[32m+[m[32m        SndBuf[2] = 0x00[m
+[32m+[m[32m        SndBuf[3] = 0x69[m
+[32m+[m[32m        SndBuf[4] = 0x00[m
+[32m+[m[32m        rtn = wbsockCmd.send(SndBuf)[m
+[32m+[m[32m    })[m
+[32m+[m
+[32m+[m[32m    /*[m
+[32m+[m[32m    var isDragging = false;[m
+[32m+[m[32m    $("#pad")[m
+[32m+[m[32m    .mousedown(function() {[m
+[32m+[m[32m        isDragging = false;[m
+[32m+[m[32m    })[m
+[32m+[m[32m    .mousemove(function(e) {[m
+[32m+[m[32m        isDragging = true;[m
+[32m+[m[32m        console.log(e.pageX)[m
+[32m+[m[32m     })[m
+[32m+[m[32m    .mouseup(function() {[m
+[32m+[m[32m        var wasDragging = isDragging;[m
+[32m+[m[32m        isDragging = false;[m
+[32m+[m[32m        if (!wasDragging) {[m
+[32m+[m[32m            //$("#pad").toggle();[m
+[32m+[m[32m        }[m
+[32m+[m[32m    });[m
+[32m+[m[32m    */[m
+[32m+[m
+ })[m
+ },{"pelcod":3}],5:[function(require,module,exports){[m
+ 'use strict'[m
+[1mdiff --git a/src/views/index.pug b/src/views/index.pug[m
+[1mindex db48b9e..be79fe4 100644[m
+[1m--- a/src/views/index.pug[m
+[1m+++ b/src/views/index.pug[m
+[36m@@ -47,13 +47,31 @@[m [mblock content[m
+         div(id="keybrdSliderTlt")  [m
+         div(id="keybrdCaptionTlt") Tilt Sensitivity[m
+             span(id="keybrdSliderValueTlt")[m
+[31m-[m
+[32m+[m[41m            [m
+         script. [m
+            $( function() {[m
+            $( "#keybrdSliderPan" ).slider({min:1,max:500,value:400});[m
+            $( "#keybrdSliderTlt" ).slider({min:1,max:500,value:400});[m
+            } );[m
+[31m-[m
+[32m+[m[32m        table.table(style='width:100%', border='1')[m
+[32m+[m[32m          caption.caption-top(style="font-weight:bold;") Gyro Stabilization Commands[m
+[32m+[m[32m          tr[m
+[32m+[m[32m            td[m
+[32m+[m[32m              input.btn.btn-success#stablePanCmd(value="Pan Steady")[m
+[32m+[m[32m            td[m
+[32m+[m[32m              input.btn.btn-success#stableTltCmd(value="Tilt Steady")[m
+[32m+[m[32m          tr[m
+[32m+[m[32m            td#stablePanStatus[m
+[32m+[m[32m            td#stableTltStatus[m
+[32m+[m[32m          tr[m
+[32m+[m[32m            td[m
+[32m+[m[32m              input.btn.btn-success#stablePanTltCmd(value="Both Axis Steady")[m
+[32m+[m[32m            td[m
+[32m+[m[32m              input.btn.btn-danger#stableStop(value="Stabilization Stop")[m
+[32m+[m[32m          tr[m[41m    [m
+[32m+[m[32m            td#stablePanTltStatus[m
+[32m+[m[32m            td#stableStopStatus[m
+[32m+[m[41m            [m
+       div.col[m
+        [m
+         table.table(style='width:100%', border='1')[m
+[36m@@ -68,14 +86,36 @@[m [mblock content[m
+               input.btn.btn-primary#qryTltCmd(value="Query Tilt")[m
+             td#qryTltDeg[m
+             td Deg[m
+[31m-      [m
+[32m+[m
+[32m+[m[32m        table.table(style='width:100%', border='1')[m
+[32m+[m[32m          caption.caption-top(style="font-weight:bold;") Position Commands[m
+[32m+[m[32m          tr[m
+[32m+[m[32m            td[m[41m [m
+[32m+[m[32m              input(type="number", id="setPandata", value=0.00, step=0.5, min=0, max=360)[m
+[32m+[m[32m            td[m[41m [m
+[32m+[m[32m              input.btn.btn-primary#setPanCmd(value="Set Pan")[m
+[32m+[m[32m          tr[m
+[32m+[m[32m            td(colspan="2")#setPanStatus[m
+[32m+[m[32m          tr[m
+[32m+[m[32m            td[m[41m [m
+[32m+[m[32m              input(type="number", id="setTltdata", value=0.00, step=0.5, min=-90, max=90)[m
+[32m+[m[32m            td[m[41m [m
+[32m+[m[32m              input.btn.btn-primary#setTltCmd(value="Set Tilt")[m
+[32m+[m[32m          tr[m
+[32m+[m[32m            td(colspan="2")#setTltStatus[m
+[32m+[m[32m          tr[m
+[32m+[m[32m            td(colspan="2")[m
+[32m+[m[32m              input.btn.btn-danger#StopMvtCmd(value="Stop Movement")[m
+[32m+[m[32m          tr[m
+[32m+[m[32m              td(colspan="2")#StopMvtStatus[m
+[32m+[m[41m            [m
+         table.table(style='width:100%', border='1')[m
+           caption.caption-top(style="font-weight:bold;") Preset Commands[m
+           tr[m
+             td.fs-4 Presets[m
+             td[m
+               select.sel(id="presetId")[m
+[31m-                - var range = Array.from({length: 32}, (x, i) => i);[m
+[32m+[m[32m                - var range = Array.from({length: 37}, (x, i) => i);[m
+                 each val in range[m
+                   option=val[m
+             td [m
+[36m@@ -93,35 +133,13 @@[m [mblock content[m
+             td[m
+               input.btn.btn-primary#homingTltCmd(value="Tilt Homing")[m
+           tr[m
+[31m-            td#homingTltComplete[m
+             td#homingPanComplete[m
+[32m+[m[32m            td#homingTltComplete[m
+           tr[m
+             td(colspan="2")[m
+               input.btn.btn-primary#homingPanTltCmd(value="Combined Homing")[m
+           tr    [m
+             td(colspan="2")#homingPanTltComplete[m
+[31m-[m
+[31m-        table.table(style='width:100%', border='1')[m
+[31m-          caption.caption-top(style="font-weight:bold;") Gyro Stabilization Commands[m
+[31m-          tr[m
+[31m-            td[m
+[31m-              input.btn.btn-success#stablePanCmd(value="Pan Steady")[m
+[31m-            td[m
+[31m-              input.btn.btn-success#stableTltCmd(value="Tilt Steady")[m
+[31m-          tr[m
+[31m-            td#stablePanStatus[m
+[31m-            td#stableTltStatus[m
+[31m-          tr[m
+[31m-            td(colspan="2")[m
+[31m-              input.btn.btn-success#stablePanTltCmd(value="Both Axis Steady")[m
+[31m-          tr    [m
+[31m-            td(colspan="2")#stablePanTltStatus[m
+[31m-          tr[m
+[31m-            td(colspan="2")[m
+[31m-              input.btn.btn-danger#stableStop(value="Stop")[m
+[31m-          tr    [m
+[31m-            td(colspan="2")#stableStopStatus[m
+[31m-[m
+     div.row[m
+       div.col[m
+[31m-        //input.btn.btn-primary#tiltStatusCmd(value="Tilt Status")[m
+[32m+[m[32m        //input.btn.btn-primary#tiltStatusCmd(value="Tilt Status")[m
+\ No newline at end of file[m

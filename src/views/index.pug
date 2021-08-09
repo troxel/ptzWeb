@@ -47,13 +47,31 @@ block content
         div(id="keybrdSliderTlt")  
         div(id="keybrdCaptionTlt") Tilt Sensitivity
             span(id="keybrdSliderValueTlt")
-
+            
         script. 
            $( function() {
            $( "#keybrdSliderPan" ).slider({min:1,max:500,value:400});
            $( "#keybrdSliderTlt" ).slider({min:1,max:500,value:400});
            } );
-
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Gyro Stabilization Commands
+          tr
+            td
+              input.btn.btn-success#stablePanCmd(value="Pan Steady")
+            td
+              input.btn.btn-success#stableTltCmd(value="Tilt Steady")
+          tr
+            td#stablePanStatus
+            td#stableTltStatus
+          tr
+            td
+              input.btn.btn-success#stablePanTltCmd(value="Both Axis Steady")
+            td
+              input.btn.btn-danger#stableStop(value="Stabilization Stop")
+          tr    
+            td#stablePanTltStatus
+            td#stableStopStatus
+            
       div.col
        
         table.table(style='width:100%', border='1')
@@ -68,14 +86,36 @@ block content
               input.btn.btn-primary#qryTltCmd(value="Query Tilt")
             td#qryTltDeg
             td Deg
-      
+
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Position Commands
+          tr
+            td 
+              input(type="number", id="setPandata", value=0.00, step=0.5, min=0, max=360)
+            td 
+              input.btn.btn-primary#setPanCmd(value="Set Pan")
+          tr
+            td(colspan="2")#setPanStatus
+          tr
+            td 
+              input(type="number", id="setTltdata", value=0.00, step=0.5, min=-90, max=90)
+            td 
+              input.btn.btn-primary#setTltCmd(value="Set Tilt")
+          tr
+            td(colspan="2")#setTltStatus
+          tr
+            td(colspan="2")
+              input.btn.btn-danger#StopMvtCmd(value="Stop Movement")
+          tr
+              td(colspan="2")#StopMvtStatus
+            
         table.table(style='width:100%', border='1')
           caption.caption-top(style="font-weight:bold;") Preset Commands
           tr
             td.fs-4 Presets
             td
               select.sel(id="presetId")
-                - var range = Array.from({length: 32}, (x, i) => i);
+                - var range = Array.from({length: 37}, (x, i) => i);
                 each val in range
                   option=val
             td 
@@ -93,35 +133,13 @@ block content
             td
               input.btn.btn-primary#homingTltCmd(value="Tilt Homing")
           tr
-            td#homingTltComplete
             td#homingPanComplete
+            td#homingTltComplete
           tr
             td(colspan="2")
               input.btn.btn-primary#homingPanTltCmd(value="Combined Homing")
           tr    
             td(colspan="2")#homingPanTltComplete
-
-        table.table(style='width:100%', border='1')
-          caption.caption-top(style="font-weight:bold;") Gyro Stabilization Commands
-          tr
-            td
-              input.btn.btn-success#stablePanCmd(value="Pan Steady")
-            td
-              input.btn.btn-success#stableTltCmd(value="Tilt Steady")
-          tr
-            td#stablePanStatus
-            td#stableTltStatus
-          tr
-            td(colspan="2")
-              input.btn.btn-success#stablePanTltCmd(value="Both Axis Steady")
-          tr    
-            td(colspan="2")#stablePanTltStatus
-          tr
-            td(colspan="2")
-              input.btn.btn-danger#stableStop(value="Stop")
-          tr    
-            td(colspan="2")#stableStopStatus
-
     div.row
       div.col
         //input.btn.btn-primary#tiltStatusCmd(value="Tilt Status")

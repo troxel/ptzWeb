@@ -451,7 +451,7 @@ PelcoD.prototype.setFocusNear = function(status) {
     if(status === true) 
         this.bytes.getCom1().on(0x00)
     else
-        this.bytes.getCom1().off(0x00)    
+        this.bytes.getCom1().off(0x00)
     return this
 }
 
@@ -515,6 +515,7 @@ wbsockCmd.addEventListener('message', function (event) {
                 console.log("pos=",pos)
                 $('#qryPanDeg').html(pos.toString() );
             }
+			
             else if ( packetView[3] == 0x5B){
                 let pos = (((packetView[4] & 0xff) << 8) | (packetView[5] & 0xff))
                 pos = (new Int16Array([pos]))[0] 
@@ -522,15 +523,29 @@ wbsockCmd.addEventListener('message', function (event) {
                 console.log("pos=",pos)
                 $('#qryTltDeg').html(pos.toString() );
             }
-            else if ( packetView[3] == 0x61){
+			
+            else if ( packetView[3] == 0x65){
                 if ( packetView[5] == 1 )
                 console.log("Homing Pan Complete")
                 $('#homingPanComplete').html( "Homing Pan Complete" );
+                // ----------- Clear status------------
+                setTimeout(function() {($('#homingPanComplete').html( "" ))}, 2000);
             }
-            else if ( packetView[3] == 0x63){
+			
+            else if ( packetView[3] == 0x67){
                 if ( packetView[5] == 1 )
                 console.log("Homing Tilt Complete")
                 $('#homingTltComplete').html( "Homing Tilt Complete" );
+                // ----------- Clear status------------
+                setTimeout(function() {($('#homingTltComplete').html( "" ))}, 2000);
+            }
+			
+            else if( packetView[3] == 0x69){
+                if ( packetView[5] == 1 )
+                console.log("Homing Pan/Tilt Complete")
+                $('#homingPanTltComplete').html( "Homing Pan/Tilt Complete" );
+                // ----------- Clear status------------
+                setTimeout(function() {($('#homingPanTltComplete').html( "" ))}, 2000);
             }
         }
           
@@ -645,7 +660,19 @@ $(document).ready(function() {
             wbsockCmd.send(rtn.bytes.getBuffer()) 
         }
     })
+    // ----------- Stop -------------------
+    $("#StopMvtCmd").click( function(){
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x0c
+        SndBuf[4] = 0x00
+        SndBuf[5] = 0x00
+        rtn = wbsockCmd.send(SndBuf)
+        $('#StopMvtStatus').html( "Stopping..." );
+    // ----------- Clear status------------
+         setTimeout(function() {($('#StopMvtStatus').html( "" ))}, 2000);
+    })
     
+    // ----------- Query -------------------
     $("#qryPanCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x51
@@ -658,26 +685,82 @@ $(document).ready(function() {
         rtn = wbsockCmd.send(SndBuf)        
     })
     
+    // ----------- Set position -------------------
+        $("#setPanCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPandata").val()) >= 0 && parseInt($("#setPandata").val()) < 360){
+        let panData = $( "#setPandata" ).val();
+        let panData1 = (panData * 100)
+        let panDataHigh = (panData1 >>> 8)
+        let panDataLow = (panData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x4B
+        SndBuf[4] = panDataHigh
+        SndBuf[5] = panDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanStatus').html( "Setting pan to " + panData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanStatus').html( "Input cannot be less than 0 or greater than 359.99");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanStatus').html( "" ))}, 2000);
+        }
+    })
+    
+    $("#setTltCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltdata").val()) >= -90 && parseInt($("#setTltdata").val()) <= 90 ){
+        let tltData = $( "#setTltdata" ).val();
+        let tltData1 = ((parseInt(tltData) + parseInt(90)) * 100)
+        //let tltData1 = ((tltData) * 100)
+        let tltDataHigh = (tltData1 >>> 8)
+        let tltDataLow = (tltData1 & 255)
+        //let tltDataHex = tltData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x4D
+        SndBuf[4] = tltDataHigh
+        SndBuf[5] = tltDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltStatus').html( "Setting Tilt to " + tltData);
+        //$('#setTltStatus').html( "tltData1 is " + tltDataHex); //-Debugging
+    // ----------- Clear status------------
+        setTimeout(function() {($('#setTltStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltStatus').html( "Input cannot be less than -90 or greater than 90");
+    // ----------- Clear status------------
+        setTimeout(function() {($('#setTltStatus').html( "" ))}, 2000);
+        }
+    })
+    
     // ----------- Homing -------------------
     $("#homingPanCmd").click( function(){
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x61
+        SndBuf[3] = 0x65
         rtn = wbsockCmd.send(SndBuf)
-        $('#homingPanComplete').html( "Homing Processing..." );
+        $('#homingPanComplete').html( "Pan Home Processing..." );
     })
 
     $("#homingTltCmd").click( function(){
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x63
+        SndBuf[3] = 0x67
         rtn = wbsockCmd.send(SndBuf)
-        $('#homingTltComplete').html( "Tilt Processing..." );
+        $('#homingTltComplete').html( "Tilt Home Processing..." );
     }) 
     
     $("#homingPanTltCmd").click( function(){
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x65
+        SndBuf[3] = 0x69
         rtn = wbsockCmd.send(SndBuf)
-        $('#homingPanTltComplete').html( "Pan/Tilt Processing..." );
+        $('#homingPanTltComplete').html( "Pan/Tilt Home Processing..." );
     })
 
     // ----------- Stable -------------------
