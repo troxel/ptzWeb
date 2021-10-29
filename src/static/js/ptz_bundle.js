@@ -1,22 +1,22 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 function Byte(bits) {
-    this.word = bits | 0x00;
-    return this;
+	this.word = bits | 0x00;
+	return this;
 }
 
 Byte.prototype.on = function(bit) {
-    this.word |= (0x01 << bit);
-    return this;
+	this.word |= (0x01 << bit);
+	return this;
 }
 
 Byte.prototype.off = function(bit) {
-    var mask = ~(0x01 << bit);
-    this.word &= mask;
-    return this;
+	var mask = ~(0x01 << bit);
+	this.word &= mask;
+	return this;
 }
 
 Byte.prototype.get = function() {
-    return this.word;
+	return this.word;
 }
 
 Byte.prototype.set = function(bits) {
@@ -122,9 +122,11 @@ Bytes.prototype.getBuffer = function() {
 }
 
 Bytes.prototype.clearAll = function(withAddress) {
+	
 	if(withAddress === true) {
 		this.setAddress(0x01)
 	}
+
 	this.setData1(0x00)
 	this.setData2(0x00)
 	this.setCom1(0x00)
@@ -660,7 +662,8 @@ $(document).ready(function() {
             wbsockCmd.send(rtn.bytes.getBuffer()) 
         }
     })
-    // ----------- Stop -------------------
+
+    // ----------- Stop Movement -------------------
     $("#StopMvtCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x0c
@@ -673,12 +676,14 @@ $(document).ready(function() {
     })
     
     // ----------- Query -------------------
+	// ----------- Query Pan ------------
     $("#qryPanCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x51
         rtn = wbsockCmd.send(SndBuf)        
     })    
-    
+
+	// ----------- Query Tilt ------------
     $("#qryTltCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x53
@@ -686,7 +691,8 @@ $(document).ready(function() {
     })
     
     // ----------- Set position -------------------
-        $("#setPanCmd").click( function(){
+	// ----------- Set Pan ------------
+    $("#setPanCmd").click( function(){
         //first check if it is a proper input
         if(parseInt($("#setPandata").val()) >= 0 && parseInt($("#setPandata").val()) < 360){
         let panData = $( "#setPandata" ).val();
@@ -712,13 +718,18 @@ $(document).ready(function() {
         setTimeout(function() {($('#setPanStatus').html( "" ))}, 2000);
         }
     })
-    
+	// ----------- Set Tilt ------------
     $("#setTltCmd").click( function(){
         //first check if it is a proper input
         if(parseInt($("#setTltdata").val()) >= -90 && parseInt($("#setTltdata").val()) <= 90 ){
         let tltData = $( "#setTltdata" ).val();
-        let tltData1 = ((parseInt(tltData) + parseInt(90)) * 100)
-        //let tltData1 = ((tltData) * 100)
+        //if the set value is negative, adjust the range so that it is between 180 and 270.
+        //this is done because we cannot send negative numbers over PelcoD
+        if(tltData < 0){
+            tltData = (180 + Math.abs(tltData));
+            }
+        let tltData1 = ((tltData) * 100)
+        $('#setTltStatus').html( "tltData1 is " + tltData1); //-Debugging
         let tltDataHigh = (tltData1 >>> 8)
         let tltDataLow = (tltData1 & 255)
         //let tltDataHex = tltData1.toString(16)//-Debugging
@@ -731,17 +742,11 @@ $(document).ready(function() {
         rtn = wbsockCmd.send(SndBuf)
         $('#setTltStatus').html( "Setting Tilt to " + tltData);
         //$('#setTltStatus').html( "tltData1 is " + tltDataHex); //-Debugging
-    // ----------- Clear status------------
-        setTimeout(function() {($('#setTltStatus').html( "" ))}, 2000);
-        }
-        else{ //Bad Input
-        $('#setTltStatus').html( "Input cannot be less than -90 or greater than 90");
-    // ----------- Clear status------------
-        setTimeout(function() {($('#setTltStatus').html( "" ))}, 2000);
         }
     })
-    
+
     // ----------- Homing -------------------
+	// ----------- Home Pan ------------
     $("#homingPanCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x65
@@ -749,13 +754,15 @@ $(document).ready(function() {
         $('#homingPanComplete').html( "Pan Home Processing..." );
     })
 
+	// ----------- Home Tilt ------------
     $("#homingTltCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x67
         rtn = wbsockCmd.send(SndBuf)
         $('#homingTltComplete').html( "Tilt Home Processing..." );
     }) 
-    
+
+	// ----------- Home Pan and Tilt ------------
     $("#homingPanTltCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x69
@@ -763,7 +770,8 @@ $(document).ready(function() {
         $('#homingPanTltComplete').html( "Pan/Tilt Home Processing..." );
     })
 
-    // ----------- Stable -------------------
+    // ----------- Stablize -------------------
+	// ----------- Stabilize Pan ------------
     $("#stablePanCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x77
@@ -772,13 +780,15 @@ $(document).ready(function() {
         $('#stablePanStatus').html( "Pan Stable Processing" );
     })
 
+	// ----------- Stabilize Tilt ------------
     $("#stableTltCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x73
         rtn = wbsockCmd.send(SndBuf)
         $('#stableTltStatus').html( "Tilt Stable Processing" );
     }) 
-    
+
+	// ----------- Stabilize Pan and Tilt ------------
     $("#stablePanTltCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x75
@@ -787,23 +797,25 @@ $(document).ready(function() {
     })
 
     // -------------- Sensitivity Slider ---------------
+	// ----------- Set Pan Sensativity ------------
     $("#keybrdSliderPan").on("slidechange", function(event,ui){
         console.log("slider ", ui.value)
         $("#keybrdSliderValuePan").html(" " +  (ui.value/400).toFixed(3))
 
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x83  
+        SndBuf[3] = 0x7B
         SndBuf[4] = ui.value 
         SndBuf[5] = $( "#keybrdSliderTlt" ).slider( "option", "value" )
         rtn = wbsockCmd.send(SndBuf)
     })  
 
+	// ----------- Set Tilt Sensativity ------------
     $("#keybrdSliderTlt").on("slidechange", function(event,ui){
         console.log("slider ", ui.value)
         $("#keybrdSliderValueTlt").html(" " + (ui.value/400).toFixed(3))
 
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x83  
+        SndBuf[3] = 0x7B
         SndBuf[4] = $( "#keybrdSliderPan" ).slider( "option", "value" ) 
         SndBuf[5] =  ui.value
         rtn = wbsockCmd.send(SndBuf)
@@ -839,7 +851,723 @@ $(document).ready(function() {
         rtn = wbsockCmd.send(SndBuf)
     })
 
-    /*
+    // ----------- Configuration Page ------------
+
+	//----------- Resets ------------
+	// ----------- Reset all ------------
+    $("#ResetAllCmd").click( function(){
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x77
+		SndBuf[4] = 0x00
+		SndBuf[5] = 0x01
+        rtn = wbsockCmd.send(SndBuf)
+        $('#stablePanTltStatus').html( "Pan/Tilt Stable Processing" );
+    })
+	// ----------- Reset all and home------------
+    $("#ResetHomeCmd").click( function(){
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x77
+		SndBuf[4] = 0x00
+		SndBuf[5] = 0x00
+        rtn = wbsockCmd.send(SndBuf)
+        $('#stablePanTltStatus').html( "Pan/Tilt Stable Processing" );
+    })
+	// ----------- Reset Motor Ramps------------
+    $("#ResetMtrCmd").click( function(){
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x77
+		SndBuf[4] = 0x00
+		SndBuf[5] = 0x02
+        rtn = wbsockCmd.send(SndBuf)
+        $('#stablePanTltStatus').html( "Pan/Tilt Stable Processing" );
+    })
+	// ----------- Reset PID------------
+    $("#ResetPidCmd").click( function(){
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x77
+		SndBuf[4] = 0x00
+		SndBuf[5] = 0x03
+        rtn = wbsockCmd.send(SndBuf)
+        $('#stablePanTltStatus').html( "Pan/Tilt Stable Processing" );
+    })
+
+    // ----------- Set Speeds ------------
+	// ----------- Pan Absolute Speed ------------
+	$("#setPanSpdCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanSpdData").val()) >= 0 && parseInt($("#setPanSpdData").val()) < 116){
+        let PanSpdData = $( "#setPanSpdData" ).val();
+        let PanSpdData1 = (PanSpdData * 100)
+        let PanSpdDataHigh = (PanSpdData1 >>> 8)
+        let PanSpdDataLow = (PanSpdData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x87
+        SndBuf[4] = PanSpdDataHigh
+        SndBuf[5] = PanSpdDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanSpdStatus').html( "Setting Pan Speed to " + PanSpdData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanSpdStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanSpdStatus').html( "Input cannot be less than 0 or greater than 116");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanspdStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Pan Manual Speed------------
+	$("#setPanManSpdCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanManSpdData").val()) >= 0 && parseInt($("#setPanManSpdData").val()) < 116){
+        let PanManSpdData = $( "#setPanManSpdData" ).val();
+        let PanManSpdData1 = (PanManSpdData * 100)
+        let PanManSpdDataHigh = (PanManSpdData1 >>> 8)
+        let PanManSpdDataLow = (PanManSpdData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x7D
+        SndBuf[4] = PanManSpdDataHigh
+        SndBuf[5] = PanManSpdDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanManSpdStatus').html( "Setting Pan Speed to " + PanManSpdData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanManSpdStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanManSpdStatus').html( "Input cannot be less than 0 or greater than 116");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanManSpdStatus').html( "" ))}, 2000);
+        }
+    })
+
+    // ----------- Tilt Absolute Speed------------
+    $("#setTltSpdCmd").click( function(){
+		//first check if it is a proper input
+        if(parseInt($("#setTltSpdData").val()) >= 0 && parseInt($("#setTltSpdData").val()) < 116){
+            let TltSpdData = $( "#setTltSpdData" ).val();
+            let TltSpdData1 = (TltSpdData * 100)
+            let TltSpdDataHigh = (TltSpdData1 >>> 8)
+            let TltSpdDataLow = (TltSpdData1 & 255)
+            //let TltDataHex = TltData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x93
+        SndBuf[4] = TltSpdDataHigh
+        SndBuf[5] = TltSpdDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltSpdStatus').html( "Setting Tilt Speed to " + TltSpdData);
+        //$('#setTltStatus').html( "TltDatahex is " + TltDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltSpdStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltSpdStatus').html( "Input cannot be less than 0 or greater than 116");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltSpdStatus').html( "" ))}, 2000);
+        }
+    })
+
+    // ----------- Tilt Manual Speed------------
+    $("#setTltManSpdCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltManSpdData").val()) >= 0 && parseInt($("#setTltManSpdData").val()) < 116){
+        let TltManSpdData = $( "#setTltManSpdData" ).val();
+        let TltManSpdData1 = (TltManSpdData * 100)
+        let TltManSpdDataHigh = (TltManSpdData1 >>> 8)
+        let TltManSpdDataLow = (TltManSpdData1 & 255)
+        //let TltDataHex = TltData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x7F
+        SndBuf[4] = TltManSpdDataHigh
+        SndBuf[5] = TltManSpdDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltManSpdStatus').html( "Setting Tilt Speed to " + TltManSpdData);
+        //$('#setTltStatus').html( "TltDatahex is " + TltDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltManSpdStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltManSpdStatus').html( "Input cannot be less than 0 or greater than 116");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltManSpdStatus').html( "" ))}, 2000);
+        }
+    })
+
+
+	// ----------- Set Motor Ramps ------------
+	// ----------- Pan A1 ------------
+	$("#setPanA1Cmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanA1Data").val()) >= 0 && parseInt($("#setPanA1Data").val()) < 400){
+        let PanA1Data = $( "#setPanA1Data" ).val();
+        let PanA1Data1 = (PanA1Data * 100)
+        let PanA1DataHigh = (PanA1Data1 >>> 8)
+        let PanA1DataLow = (PanA1Data1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x81
+        SndBuf[4] = PanA1DataHigh
+        SndBuf[5] = PanA1DataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanA1Status').html( "Setting Pan A1 to " + PanA1Data);
+        //$('#setPanA1Status').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanA1Status').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanA1Status').html( "Input cannot be less than 0 or greater than 400");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanA1Status').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Pan V1 ------------
+	$("#setPanV1Cmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanV1Data").val()) >= 0 && parseInt($("#setPanV1Data").val()) < 400){
+        let PanV1Data = $( "#setPanV1Data" ).val();
+        let PanV1Data1 = (PanV1Data * 100)
+        let PanV1DataHigh = (PanV1Data1 >>> 8)
+        let PanV1DataLow = (PanV1Data1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x83
+        SndBuf[4] = PanV1DataHigh
+        SndBuf[5] = PanV1DataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanV1Status').html( "Setting Pan V1 to " + PanV1Data);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanV1Status').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanV1Status').html( "Input cannot be less than 0 or greater than 400");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanV1Status').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Pan AMAX ------------
+	$("#setPanAmaxCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanAmaxData").val()) >= 0 && parseInt($("#setPanAmaxData").val()) < 400){
+        let PanAmaxData = $( "#setPanAmaxData" ).val();
+        let PanAmaxData1 = (PanAmaxData * 100)
+        let PanAmaxDataHigh = (PanAmaxData1 >>> 8)
+        let PanAmaxDataLow = (PanAmaxData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x85
+        SndBuf[4] = PanAmaxDataHigh
+        SndBuf[5] = PanAmaxDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanAmaxStatus').html( "Setting AMAX Speed to " + PanAmaxData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanAmaxStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanAmaxStatus').html( "Input cannot be less than 0 or greater than 400");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanAmaxStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Pan DMAX ------------
+	$("#setPanDmaxCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanDmaxData").val()) >= 0 && parseInt($("#setPanDmaxData").val()) < 400){
+        let PanDmaxData = $( "#setPanDmaxData" ).val();
+        let PanDmaxData1 = (PanDmaxData * 100)
+        let PanDmaxDataHigh = (PanDmaxData1 >>> 8)
+        let PanDmaxDataLow = (PanDmaxData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x89
+        SndBuf[4] = PanDmaxDataHigh
+        SndBuf[5] = PanDmaxDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanDmaxStatus').html( "Setting Pan Dmax to " + PanDmaxData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanDmaxStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanDmaxStatus').html( "Input cannot be less than 0 or greater than 400");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanDmaxStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Pan D1 ------------
+	$("#setPanD1Cmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanD1Data").val()) >= 0 && parseInt($("#setPanD1Data").val()) < 400){
+        let PanD1Data = $( "#setPanD1Data" ).val();
+        let PanD1Data1 = (PanD1Data * 100)
+        let PanD1DataHigh = (PanD1Data1 >>> 8)
+        let PanD1DataLow = (PanD1Data1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x8B
+        SndBuf[4] = PanD1DataHigh
+        SndBuf[5] = PanD1DataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanD1Status').html( "Setting Pan D1 to " + PanD1Data);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanD1Status').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanD1Status').html( "Input cannot be less than 0 or greater than 400");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanD1Status').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Tilt A1 ------------
+	$("#setTltA1Cmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltA1Data").val()) >= 0 && parseInt($("#setTltA1Data").val()) < 400){
+        let TltA1Data = $( "#setTltA1Data" ).val();
+        let TltA1Data1 = (TltA1Data * 100)
+        let TltA1DataHigh = (TltA1Data1 >>> 8)
+        let TltA1DataLow = (TltA1Data1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x8D
+        SndBuf[4] = TltA1DataHigh
+        SndBuf[5] = TltA1DataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltA1Status').html( "Setting Tilt A1 to " + TltA1Data);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltA1Status').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltA1Status').html( "Input cannot be less than 0 or greater than 400");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltA1Status').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Tilt V1 ------------
+	$("#setTltV1Cmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltV1Data").val()) >= 0 && parseInt($("#setTltV1Data").val()) < 400){
+        let TltV1Data = $( "#setTltV1Data" ).val();
+        let TltV1Data1 = (TltV1Data * 100)
+        let TltV1DataHigh = (TltV1Data1 >>> 8)
+        let TltV1DataLow = (TltV1Data1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x8F
+        SndBuf[4] = TltV1DataHigh
+        SndBuf[5] = TltV1DataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltV1Status').html( "Setting Tilt V1 to " + TltV1Data);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltV1Status').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltV1Status').html( "Input cannot be less than 0 or greater than 400");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltV1Status').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Tilt AMAX ------------
+	$("#setTltAmaxCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltAmaxData").val()) >= 0 && parseInt($("#setTltAmaxData").val()) < 400){
+        let TltAmaxData = $( "#setTltAmaxData" ).val();
+        let TltAmaxData1 = (TltAmaxData * 100)
+        let TltAmaxDataHigh = (TltAmaxData1 >>> 8)
+        let TltAmaxDataLow = (TltAmaxData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x91
+        SndBuf[4] = TltAmaxDataHigh
+        SndBuf[5] = TltAmaxDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltAmaxStatus').html( "Setting Tilt AMAX to " + TltAmaxData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltAmaxStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltAmaxStatus').html( "Input cannot be less than 0 or greater than 400");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltAmaxStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Tilt DMAX ------------
+	$("#setTltDmaxCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltDmaxData").val()) >= 0 && parseInt($("#setTltDmaxData").val()) < 400){
+        let TltDmaxData = $( "#setTltDmaxData" ).val();
+        let TltDmaxData1 = (TltDmaxData * 100)
+        let TltDmaxDataHigh = (TltDmaxData1 >>> 8)
+        let TltDmaxDataLow = (TltDmaxData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x95
+        SndBuf[4] = TltDmaxDataHigh
+        SndBuf[5] = TltDmaxDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltDmaxStatus').html( "Setting Tilt DMAX to " + TltDmaxData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltDmaxStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltDmaxStatus').html( "Input cannot be less than 0 or greater than 400");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltDmaxStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Tilt D1 ------------
+	$("#setTltD1Cmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltD1Data").val()) >= 0 && parseInt($("#setTltD1Data").val()) < 400){
+        let TltD1Data = $( "#setTltD1Data" ).val();
+        let TltD1Data1 = (TltD1Data * 100)
+        let TltD1DataHigh = (TltD1Data1 >>> 8)
+        let TltD1DataLow = (TltD1Data1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x97
+        SndBuf[4] = TltD1DataHigh
+        SndBuf[5] = TltD1DataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltD1Status').html( "Setting Tilt D1 to " + TltD1Data);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltD1Status').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltD1Status').html( "Input cannot be less than 0 or greater than 116");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltD1Status').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Set PID ------------
+	// ----------- Pan P ------------
+	$("#setPanPCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanPData").val()) >= 0 && parseInt($("#setPanPData").val()) < 10000000){
+        let PanPData = $( "#setPanPData" ).val();
+        let PanPData1 = (PanPData / 1000)
+        let PanPDataHigh = (PanPData1 >>> 8)
+        let PanPDataLow = (PanPData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x9D
+        SndBuf[4] = PanPDataHigh
+        SndBuf[5] = PanPDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanPStatus').html( "Setting Pan P to " + PanPData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanPStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanPStatus').html( "Input cannot be less than 0 or greater than 10000000");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanPStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Pan I ------------
+	$("#setPanICmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanIData").val()) >= 0 && parseInt($("#setPanIData").val()) < 10000000){
+        let PanIData = $( "#setPanIData" ).val();
+        let PanIData1 = (PanIData / 1000)
+        let PanIDataHigh = (PanIData1 >>> 8)
+        let PanIDataLow = (PanIData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0x9F
+        SndBuf[4] = PanIDataHigh
+        SndBuf[5] = PanIDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanIStatus').html( "Setting Pan I to " + PanIData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanIStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanIStatus').html( "Input cannot be less than 0 or greater than 10000000");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanIStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Pan D ------------
+	$("#setPanDCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanDData").val()) >= 0 && parseInt($("#setPanDData").val()) < 10000000){
+        let PanDData = $( "#setPanDData" ).val();
+        let PanDData1 = (PanDData / 1000)
+        let PanDDataHigh = (PanDData1 >>> 8)
+        let PanDDataLow = (PanDData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0xA1
+        SndBuf[4] = PanDDataHigh
+        SndBuf[5] = PanDDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanDStatus').html( "Setting Pan D to " + PanDData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanDStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanDStatus').html( "Input cannot be less than 0 or greater than 10000000");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanDStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Pan I Max ------------
+	$("#setPanIMaxCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanIMaxData").val()) >= 0 && parseInt($("#setPanIMaxData").val()) < 10000000){
+        let PanIMaxData = $( "#setPanIMaxData" ).val();
+        let PanIMaxData1 = (PanIMaxData / 1000)
+        let PanIMaxDataHigh = (PanIMaxData1 >>> 8)
+        let PanIMaxDataLow = (PanIMaxData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0xA3
+        SndBuf[4] = PanIMaxDataHigh
+        SndBuf[5] = PanIMaxDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanIMaxStatus').html( "Setting Pan I Max to " + PanIMaxData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanIMaxStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanIMaxStatus').html( "Input cannot be less than 0 or greater than 10000000");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanIMaxStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Pan Out Max ------------
+	$("#setPanOutMaxCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setPanOutMaxData").val()) >= 0 && parseInt($("#setPanOutMaxData").val()) < 10000000){
+        let PanOutMaxData = $( "#setPanOutMaxData" ).val();
+        let PanOutMaxData1 = (PanOutMaxData / 1000)
+        let PanOutMaxDataHigh = (PanOutMaxData1 >>> 8)
+        let PanOutMaxDataLow = (PanOutMaxData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0xA5
+        SndBuf[4] = PanOutMaxDataHigh
+        SndBuf[5] = PanOutMaxDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setPanOutMaxStatus').html( "Setting Pan Out Max to " + PanOutMaxData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanOutMaxStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setPanOutMaxStatus').html( "Input cannot be less than 0 or greater than 10000000");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setPanOutMaxStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Tilt P ------------
+	$("#setTltPCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltPData").val()) >= 0 && parseInt($("#setTltPData").val()) < 10000000){
+        let TltPData = $( "#setTltPData" ).val();
+        let TltPData1 = (TltPData / 1000)
+        let TltPDataHigh = (TltPData1 >>> 8)
+        let TltPDataLow = (TltPData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0xA7
+        SndBuf[4] = TltPDataHigh
+        SndBuf[5] = TltPDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltPStatus').html( "Setting Tilt P to " + TltPData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltPStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltPStatus').html( "Input cannot be less than 0 or greater than 10000000");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltPStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Tilt I ------------
+	$("#setTltICmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltIData").val()) >= 0 && parseInt($("#setTltIData").val()) < 10000000){
+        let TltIData = $( "#setTltIData" ).val();
+        let TltIData1 = (TltIData / 1000)
+        let TltIDataHigh = (TltIData1 >>> 8)
+        let TltIDataLow = (TltIData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0xA9
+        SndBuf[4] = TltIDataHigh
+        SndBuf[5] = TltIDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltIStatus').html( "Setting Tilt I to " + TltIData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltIStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltIStatus').html( "Input cannot be less than 0 or greater than 10000000");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltIStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Tilt D ------------
+	$("#setTltDCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltDData").val()) >= 0 && parseInt($("#setTltDData").val()) < 10000000){
+        let TltDData = $( "#setTltDData" ).val();
+        let TltDData1 = (TltDData / 1000)
+        let TltDDataHigh = (TltDData1 >>> 8)
+        let TltDDataLow = (TltDData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0xAB
+        SndBuf[4] = TltDDataHigh
+        SndBuf[5] = TltDDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltDStatus').html( "Setting Tilt D to " + TltDData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltDStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltDStatus').html( "Input cannot be less than 0 or greater than 10000000");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltDStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Tilt I Max ------------
+	$("#setTltIMaxCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltIMaxData").val()) >= 0 && parseInt($("#setTltIMaxData").val()) < 10000000){
+        let TltIMaxData = $( "#setTltIMaxData" ).val();
+        let TltIMaxData1 = (TltIMaxData / 1000)
+        let TltIMaxDataHigh = (TltIMaxData1 >>> 8)
+        let TltIMaxDataLow = (TltIMaxData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0xAD
+        SndBuf[4] = TltIMaxDataHigh
+        SndBuf[5] = TltIMaxDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltIMaxStatus').html( "Setting Tilt I Max to " + TltIMaxData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltIMaxStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltIMaxStatus').html( "Input cannot be less than 0 or greater than 10000000");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltIMaxStatus').html( "" ))}, 2000);
+        }
+    })
+
+	// ----------- Tilt Out Max ------------
+	$("#setTltOutMaxCmd").click( function(){
+        //first check if it is a proper input
+        if(parseInt($("#setTltOutMaxData").val()) >= 0 && parseInt($("#setTltOutMaxData").val()) < 10000000){
+        let TltOutMaxData = $( "#setTltOutMaxData" ).val();
+        let TltOutMaxData1 = (TltOutMaxData / 1000)
+        let TltOutMaxDataHigh = (TltOutMaxData1 >>> 8)
+        let TltOutMaxDataLow = (TltOutMaxData1 & 255)
+        //let panDataHex = panData1.toString(16)//-Debugging
+
+        SndBuf[2] = 0x00
+        SndBuf[3] = 0xAF
+        SndBuf[4] = TltOutMaxDataHigh
+        SndBuf[5] = TltOutMaxDataLow
+
+        rtn = wbsockCmd.send(SndBuf)
+        $('#setTltOutMaxStatus').html( "Setting Tilt Out Max to " + TltOutMaxData);
+        //$('#setPanStatus').html( "panDatahex is " + panDataHex); //-Debugging
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltOutMaxStatus').html( "" ))}, 2000);
+        }
+        else{ //Bad Input
+        $('#setTltOutMaxStatus').html( "Input cannot be less than 0 or greater than 10000000");
+        //----------- Clear status------------
+        setTimeout(function() {($('#setTltOutMaxStatus').html( "" ))}, 2000);
+        }
+    })
+
+	/*
     var isDragging = false;
     $("#pad")
     .mousedown(function() {

@@ -1,0 +1,260 @@
+extends layout.pug
+
+block style
+
+  style(type="text/css").
+
+
+block content
+  div.container
+    table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Reset Configuration
+          tr
+            td
+              input.btn.btn-primary#ResetAllCmd(value="Reset All")
+            td 
+              input.btn.btn-primary#ResetHomeCmd(value="Reset All and Rehome")
+            td
+              input.btn.btn-primary#ResetMtrCmd(value="Reset Motor Ramps")
+            td
+              input.btn.btn-primary#ResetPidCmd(value="Reset PID Values")
+          tr
+            td(colspan="4")#ResetStatus
+
+    div.row.row-cols-2
+      div.col
+
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Pan Speed Control (VMAX)
+          tr
+            td 
+              input(type="number", id="setPanSpdData", value=22.3, step=0.5, min=0, max=116.0)
+            td
+              p Degrees/Second
+            td 
+              input.btn.btn-primary#setPanSpdCmd(value="Set Absolute Speed")
+          tr
+            td(colspan="3")#setPanSpdStatus
+          tr
+            td 
+              input(type="number", id="setPanManSpdData", value=1.73
+			 , step=0.5, min=0, max=116.0)
+            td
+              p Degrees/Second
+            td 
+              input.btn.btn-primary#setPanManSpdCmd(value="Set Manual Speed")
+          tr
+            td(colspan="3")#setPanManSpdStatus
+
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Motor Ramp Values - Pan
+          tr
+            td 
+              input(type="number", id="setPanA1Data", value=109.35, step=0.5, min=0, max=116.0)
+            td
+              p Degrees/Second^2
+            td 
+              input.btn.btn-primary#setPanA1Cmd(value="Set A1")
+          tr
+            td(colspan="3")#setPanA1Status
+
+          tr
+            td 
+              input(type="number", id="setPanV1Data", value=7.17, step=0.5, min=0, max=116.0)
+            td 
+              p Degrees/Second
+            td
+              input.btn.btn-primary#setPanV1Cmd(value="Set V1")
+          tr
+            td(colspan="3")#setPanV1Status
+
+          tr
+            td 
+              input(type="number", id="setPanAmaxData", value=138.12, step=0.5, min=0, max=116.0)
+            td 
+              p Degrees/Second^2
+            td
+              input.btn.btn-primary#setPanAmaxCmd(value="Set AMAX")
+          tr
+            td(colspan="3")#setPanAmaxStatus
+
+          tr
+            td 
+              input(type="number", id="setPanDmaxData", value=113.96, step=0.5, min=0, max=116.0)
+            td 
+              p Degrees/Second^2
+            td
+              input.btn.btn-primary#setPanDmaxCmd(value="Set DMAX")
+          tr
+            td(colspan="3")#setPanDmaxStatus
+
+          tr
+            td 
+              input(type="number", id="setPanD1Data", value=57.6, step=0.5, min=0, max=116.0)
+            td 
+              p Degrees/Second^2
+            td
+              input.btn.btn-primary#setPanD1Cmd(value="Set D1")
+          tr
+            td(colspan="3")#setPanD1Status
+
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Gyro PID Values - Pan
+
+          tr
+            td 
+              input(type="number", id="setPanPData", value=120000, step=0.5, min=0, max=116.0)
+            td
+              input.btn.btn-primary#setPanPCmd(value="Set P")
+          tr
+            td(colspan="2")#setPanPStatus
+
+          tr
+            td 
+              input(type="number", id="setPanIData", value=90000, step=0.5, min=0, max=116.0)
+            td
+              input.btn.btn-primary#setPanICmd(value="Set I")
+          tr
+            td(colspan="2")#setPanIStatus
+
+          tr
+            td 
+              input(type="number", id="setPanDData", value=20000, step=0.5, min=0, max=116.0)
+            td
+              input.btn.btn-primary#setPanDCmd(value="Set D")
+          tr
+            td(colspan="2")#setPanDStatus
+
+          tr
+            td 
+              input(type="number", id="setPanIMaxData", value=30000, step=0.5, min=0, max=116.0)
+            td
+              input.btn.btn-primary#setPanIMaxCmd(value="Set I Max")
+          tr
+            td(colspan="2")#setPanIMaxStatus
+
+          tr
+            td 
+              input(type="number", id="setPanOutMaxData", value=9000000, step=0.5, min=0, max=116.0)
+            td
+              input.btn.btn-primary#setPanOutMaxCmd(value="Set Out Max")
+          tr
+            td(colspan="2")#setPanOutMaxStatus
+
+      div.col
+
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Tilt Speed Control (VMAX)
+          tr
+            td 
+              input(type="number", id="setTltSpdData", value=22.3, step=0.5, min=0, max=116.0)
+            td
+              p Degrees/Second
+            td 
+              input.btn.btn-primary#setTltSpdCmd(value="Set Absolute Speed")
+          tr
+            td(colspan="3")#setTltSpdStatus
+          tr
+            td 
+              input(type="number", id="setTltManSpdData", value=1.73, step=0.5, min=0, max=116.0)
+            td
+              p Degrees/Second
+            td 
+              input.btn.btn-primary#setTltManSpdCmd(value="Set Manual Speed")
+          tr
+            td(colspan="3")#setTltManSpdStatus
+
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Motor Ramp Values - Tilt
+          tr
+            td 
+              input(type="number", id="setTltA1Data", value=82.88, step=0.5, min=0, max=116.0)
+            td
+              p Degrees/Second^2
+            td 
+              input.btn.btn-primary#setTltA1Cmd(value="Set A1")
+          tr
+            td(colspan="3")#setTltA1Status
+
+          tr
+            td 
+              input(type="number", id="setTltV1Data", value=8.0, step=0.5, min=0, max=116.0)
+            td 
+              p Degrees/Second
+            td
+              input.btn.btn-primary#setTltV1Cmd(value="Set V1")
+          tr
+            td(colspan="3")#setTltV1Status
+
+          tr
+            td 
+              input(type="number", id="setTltAmaxData", value=110.5, step=0.5, min=0, max=116.0)
+            td 
+              p Degrees/Second^2
+            td
+              input.btn.btn-primary#setTltAmaxCmd(value="Set AMAX")
+          tr
+            td(colspan="3")#setTltAmaxStatus
+
+          tr
+            td 
+              input(type="number", id="setTltDmaxData", value=184.2, step=0.5, min=0, max=116.0)
+            td 
+              p Degrees/Second^2
+            td
+              input.btn.btn-primary#setTltDmaxCmd(value="Set DMAX")
+          tr
+            td(colspan="3")#setTltDmaxStatus
+
+          tr
+            td 
+              input(type="number", id="setTltD1Data", value=368.3, step=0.5, min=0, max=116.0)
+            td 
+              p Degrees/Second^2
+            td
+              input.btn.btn-primary#setTltD1Cmd(value="Set D1")
+          tr
+            td(colspan="3")#setTltD1Status
+
+        table.table(style='width:100%', border='1')
+          caption.caption-top(style="font-weight:bold;") Gyro PID Values - Tilt
+
+          tr
+            td 
+              input(type="number", id="setTltPData", value=120000, step=0.5, min=0, max=116.0)
+            td
+              input.btn.btn-primary#setTltPCmd(value="Set P")
+          tr
+            td(colspan="2")#setTltPStatus
+
+          tr
+            td 
+              input(type="number", id="setTltIData", value=90000, step=0.5, min=0, max=116.0)
+            td
+              input.btn.btn-primary#setTltICmd(value="Set I")
+          tr
+            td(colspan="2")#setTltIStatus
+
+          tr
+            td 
+              input(type="number", id="setTltDData", value=20000, step=0.5, min=0, max=116.0)
+            td
+              input.btn.btn-primary#setTltDCmd(value="Set D")
+          tr
+            td(colspan="2")#setTltDStatus
+
+          tr
+            td 
+              input(type="number", id="setTltIMaxData", value=30000, step=0.5, min=0, max=116.0)
+            td
+              input.btn.btn-primary#setTltIMaxCmd(value="Set I Max")
+          tr
+            td(colspan="2")#setTltIMaxStatus
+
+          tr
+            td 
+              input(type="number", id="setTltOutMaxData", value=9000000, step=0.5, min=0, max=116.0)
+            td
+              input.btn.btn-primary#setTltOutMaxCmd(value="Set Out Max")
+          tr
+            td(colspan="2")#setTltOutMaxStatus
