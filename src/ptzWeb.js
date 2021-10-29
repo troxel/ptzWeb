@@ -202,11 +202,14 @@ app.ws('/data', function(ws, req) {
 
 });
 
-// -------------------------------
+// --------------Other Pages-----------------
 app.get('/plot', (req, res) => {
-  res.render('plot_compare', { title: 'Plot',active_plot:'active' })  
- 
+  res.render('plot_compare', { title: 'Plot',active_plot:'active' })
 });
+
+app.get('/config', (req, res) => {
+  res.render('config', { title: 'Configuration',active_config:"active"})
+})
 
 
 // -------------------------------

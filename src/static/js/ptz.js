@@ -154,12 +154,15 @@ $(document).ready(function() {
         }
     })
     
+	
+	// ----------- Query Pan ------------
     $("#qryPanCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x51
         rtn = wbsockCmd.send(SndBuf)        
-    })    
-    
+    })
+
+	// ----------- Query Tilt ------------
     $("#qryTltCmd").click( function(){
         SndBuf[2] = 0x00
         SndBuf[3] = 0x53
@@ -167,68 +170,81 @@ $(document).ready(function() {
     })
     
     // ----------- Homing -------------------
+
+	// ----------- Home Pan ------------
     $("#homingPanCmd").click( function(){
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x61
+        SndBuf[3] = 0x65
         rtn = wbsockCmd.send(SndBuf)
         $('#homingPanComplete').html( "Homing Processing..." );
     })
 
+	// ----------- Home Tilt ------------
     $("#homingTltCmd").click( function(){
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x63
+        SndBuf[3] = 0x67
         rtn = wbsockCmd.send(SndBuf)
         $('#homingTltComplete').html( "Tilt Processing..." );
     }) 
-    
+
+	// ----------- Home Pan and Tilt ------------
     $("#homingPanTltCmd").click( function(){
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x65
+        SndBuf[3] = 0x69
         rtn = wbsockCmd.send(SndBuf)
         $('#homingPanTltComplete').html( "Pan/Tilt Processing..." );
     })
 
-    // ----------- Stable -------------------
+
+	// ----------- Stablize axis -------------------
+
+	// ----------- Stabilize Pan ------------
     $("#stablePanCmd").click( function(){
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x77
+        SndBuf[3] = 0x6B
         SndBuf[5] = 0x1
         rtn = wbsockCmd.send(SndBuf)
         $('#stablePanStatus').html( "Pan Stable Processing" );
     })
 
+	// ----------- Stabilize Tilt ------------
     $("#stableTltCmd").click( function(){
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x73
+        SndBuf[3] = 0x6D
         rtn = wbsockCmd.send(SndBuf)
         $('#stableTltStatus').html( "Tilt Stable Processing" );
     }) 
-    
+
+	// ----------- Stabilize Pan and Tilt ------------
     $("#stablePanTltCmd").click( function(){
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x75
+        SndBuf[3] = 0x6F
         rtn = wbsockCmd.send(SndBuf)
         $('#stablePanTltStatus').html( "Pan/Tilt Stable Processing" );
     })
 
+
     // -------------- Sensitivity Slider ---------------
+
+	// ----------- Set Pan Sensativity ------------
     $("#keybrdSliderPan").on("slidechange", function(event,ui){
         console.log("slider ", ui.value)
         $("#keybrdSliderValuePan").html(" " +  (ui.value/400).toFixed(3))
 
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x83  
+        SndBuf[3] = 0x7B  
         SndBuf[4] = ui.value 
         SndBuf[5] = $( "#keybrdSliderTlt" ).slider( "option", "value" )
         rtn = wbsockCmd.send(SndBuf)
     })  
 
+	// ----------- Set Tilt Sensativity ------------
     $("#keybrdSliderTlt").on("slidechange", function(event,ui){
         console.log("slider ", ui.value)
         $("#keybrdSliderValueTlt").html(" " + (ui.value/400).toFixed(3))
 
         SndBuf[2] = 0x00
-        SndBuf[3] = 0x83  
+        SndBuf[3] = 0x7B  
         SndBuf[4] = $( "#keybrdSliderPan" ).slider( "option", "value" ) 
         SndBuf[5] =  ui.value
         rtn = wbsockCmd.send(SndBuf)
